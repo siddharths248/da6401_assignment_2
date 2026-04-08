@@ -67,7 +67,7 @@ class VGG11Encoder(nn.Module):
             - if return_features=False: bottleneck feature tensor.
             - if return_features=True: (bottleneck, feature_dict).
         """
-        # TODO: Implement forward pass.
+        # : Implement forward pass.
         # raise NotImplementedError("Implement VGG11Encoder.forward")
         
         features = {}
@@ -95,24 +95,21 @@ class VGG11Encoder(nn.Module):
     
 
 
-class VGG11():
-
-    def __init__(self, num_classes: int=37, in_channels: int = 3):
-        
-        super.__init__()
+class VGG11(nn.Module):
+    def __init__(self, num_classes: int = 37, in_channels: int = 3):
+        super().__init__()
 
         self.encoder = VGG11Encoder(in_channels)
 
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(512*7*7, 4096),
+            nn.Linear(512 * 7 * 7, 4096),
             nn.ReLU(True),
             nn.Linear(4096, 4096),
             nn.ReLU(True),
             nn.Linear(4096, num_classes)
         )
 
-    
     def forward(self, x):
         x = self.encoder(x)
         x = self.classifier(x)
