@@ -26,8 +26,8 @@ def main():
 
     train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_loader   = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=2)
+    val_loader   = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=2)
 
 
     num_classes = len(dataset.classes)
