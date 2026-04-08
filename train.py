@@ -79,7 +79,7 @@ def main():
 
                 _,preds = torch.max(outputs,1)
                 correct += (preds==labels).sum().item()
-                total += labels.size()
+                total += labels.size(0)
         avg_val_loss = val_loss/len(val_loader.dataset)
 
         accuracy = correct/total
