@@ -57,9 +57,41 @@ def main():
             loss.backward()
             optimizer.step()
 
-            total_loss += loss.item()
+            total_loss += loss.item() * images.size(0)
 
-        print(f"Epoch {epoch+1}, Loss: {total_loss:.4f}")
+        avg_train_loss = total_loss/len(train_loader.dataset)
+
+
+        model.eval()
+
+        val_loss = 0
+        correct = 0
+        total = 0
+
+        with torch.no_grad():
+            for images, labels in val_loader:
+                images = images.to(device)
+                labels = labels.to(device)
+
+                outputs = model(images)
+                loss = criterion(outputs,labels)
+                val_loss += loss.item() * images.size(0)
+
+                _,preds = torch.max(outputs,1)
+                correct += (preds==labels).sum().item()
+                total += labels.size()
+        avg_val_loss = val_loss/len(val_loader.dataset)
+
+        accuracy = correct/total
+
+        # print(f"Epoch {epoch+1}, Loss: {total_loss:.4f}")
+
+        print(
+            f"Epoch {epoch+1} | "
+            f"Train Loss: {avg_train_loss:.4f} | "
+            f"Val Loss: {avg_val_loss:.4f} | "
+            f"Accuracy: {accuracy:.4f}"
+        )
 
     print("Training complete!")
 
