@@ -134,7 +134,7 @@ def train_localization():
 
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-    epochs = 10
+    epochs = 15
 
     for epoch in range(epochs):
         model.train()
@@ -183,7 +183,7 @@ def train_localization():
 
 def main():
     train_classification()
-    # train_localization()
+    train_localization()
 
 
 if __name__ == "__main__":
