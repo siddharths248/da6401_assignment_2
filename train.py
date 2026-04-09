@@ -17,7 +17,7 @@ def main():
     transform = get_default_transforms()
 
     dataset = PetDataset(
-        root_dir="/kaggle/input/datasets/siddharthsgeorge/oxford-iiit-pet-dataset/",
+        root_dir="/kaggle/input/datasets/siddharthsgeorge/oxford-iiit-pet-dataset",
         transform=transform
     )
 

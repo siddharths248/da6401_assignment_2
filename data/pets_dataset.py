@@ -12,7 +12,8 @@ class PetDataset(Dataset):
         self.root_dir = root_dir
         self.transform = transform
 
-        self.image_dir = os.path.join(root_dir, "images")
+        self.image_dir = os.path.join(root_dir, "images", "images")
+        self.ann_dir = os.path.join(root_dir, "annotations", "annotations", "xmls")
 
         self.image_paths = [
             os.path.join(self.image_dir, fname)
@@ -68,8 +69,8 @@ class PetLocalizationDataset(Dataset):
         self.root_dir = root_dir
         self.transform = transform
 
-        self.image_dir = os.path.join(root_dir, "images")
-        self.ann_dir = os.path.join(root_dir, "annotations", "xmls")
+        self.image_dir = os.path.join(root_dir, "images", "images")
+        self.ann_dir = os.path.join(root_dir, "annotations", "annotations", "xmls")
 
         self.image_paths = [
             os.path.join(self.image_dir, fname)
