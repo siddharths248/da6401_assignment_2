@@ -40,7 +40,7 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
 
-    epochs = 8
+    epochs = 15
 
     for epoch in range(epochs):
         model.train()
