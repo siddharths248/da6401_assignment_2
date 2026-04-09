@@ -182,7 +182,7 @@ def train_localization():
 
 
 def main():
-    train_classification()
+    # train_classification()
     train_localization()
 
 

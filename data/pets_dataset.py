@@ -83,11 +83,23 @@ class PetLocalizationDataset(Dataset):
         self.image_dir = os.path.join(root_dir, "images", "images")
         self.ann_dir = os.path.join(root_dir, "annotations", "annotations", "xmls")
 
-        self.image_paths = [
-            os.path.join(self.image_dir, fname)
-            for fname in os.listdir(self.image_dir)
-            if fname.endswith(".jpg")
-        ]
+        # self.image_paths = [
+        #     os.path.join(self.image_dir, fname)
+        #     for fname in os.listdir(self.image_dir)
+        #     if fname.endswith(".jpg")
+        # ]
+
+        self.image_paths = []
+
+        for fname in os.listdir(self.image_dir):
+            if not fname.endswith(".jpg"):
+                continue
+
+            xml_name = fname.replace(".jpg", ".xml")
+            xml_path = os.path.join(self.ann_dir, xml_name)
+
+            if os.path.exists(xml_path):
+                self.image_paths.append(os.path.join(self.image_dir, fname))
 
     def __len__(self):
         return len(self.image_paths)
