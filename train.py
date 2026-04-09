@@ -1,4 +1,4 @@
-"""Training entrypoint
+"""Training entrypoint (Classification + Localization)
 """
 
 import torch
@@ -6,14 +6,20 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 
-from data.pets_dataset import PetDataset, get_default_transforms
-from models.classification import VGG11Classifier  
+from data.pets_dataset import (
+    PetDataset,
+    PetLocalizationDataset,
+    get_default_transforms,
+    get_localization_transforms
+)
+
+from models.classification import VGG11Classifier
+from models.localization import VGG11Localizer
 
 
-def main():
+def train_classification():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # ===== DATA =====
     transform = get_default_transforms()
 
     dataset = PetDataset(
@@ -29,16 +35,13 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=2)
     val_loader   = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=2)
 
-
     num_classes = len(dataset.classes)
 
-    model = VGG11Classifier(num_classes=num_classes)  
+    model = VGG11Classifier(num_classes=num_classes)
     model.to(device)
-
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
-
 
     epochs = 15
 
@@ -50,7 +53,7 @@ def main():
             images = images.to(device)
             labels = labels.to(device)
 
-            outputs = model(images)  
+            outputs = model(images)
             loss = criterion(outputs, labels)
 
             optimizer.zero_grad()
@@ -59,8 +62,7 @@ def main():
 
             total_loss += loss.item() * images.size(0)
 
-        avg_train_loss = total_loss/len(train_loader.dataset)
-
+        avg_train_loss = total_loss / len(train_loader.dataset)
 
         model.eval()
 
@@ -74,26 +76,105 @@ def main():
                 labels = labels.to(device)
 
                 outputs = model(images)
-                loss = criterion(outputs,labels)
+                loss = criterion(outputs, labels)
+
                 val_loss += loss.item() * images.size(0)
 
-                _,preds = torch.max(outputs,1)
-                correct += (preds==labels).sum().item()
+                _, preds = torch.max(outputs, 1)
+                correct += (preds == labels).sum().item()
                 total += labels.size(0)
-        avg_val_loss = val_loss/len(val_loader.dataset)
 
-        accuracy = correct/total
-
-        # print(f"Epoch {epoch+1}, Loss: {total_loss:.4f}")
+        avg_val_loss = val_loss / len(val_loader.dataset)
+        accuracy = correct / total
 
         print(
-            f"Epoch {epoch+1} | "
+            f"[CLS] Epoch {epoch+1} | "
             f"Train Loss: {avg_train_loss:.4f} | "
             f"Val Loss: {avg_val_loss:.4f} | "
-            f"Accuracy: {accuracy:.4f}"
+            f"Acc: {accuracy:.4f}"
         )
 
-    print("Training complete!")
+    torch.save(model.state_dict(), "classifier.pth")
+    print("Classifier training complete! Saved classifier.pth")
+
+
+
+def train_localization():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    dataset = PetLocalizationDataset(
+        root_dir="/kaggle/input/datasets/siddharthsgeorge/oxford-iiit-pet-dataset",
+        transform=get_localization_transforms()
+    )
+
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+
+    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=2)
+    val_loader   = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=2)
+
+    model = VGG11Localizer()
+    model.to(device)
+
+    mse_loss = nn.MSELoss()
+
+    def loss_fn(preds, targets):
+        return mse_loss(preds, targets)
+
+    optimizer = optim.Adam(model.parameters(), lr=3e-4)
+
+    epochs = 10
+
+    for epoch in range(epochs):
+        model.train()
+        train_loss = 0
+
+        for images, targets in train_loader:
+            images = images.to(device)
+            targets = targets.to(device)
+
+            outputs = model(images)
+            loss = loss_fn(outputs, targets)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            train_loss += loss.item() * images.size(0)
+
+        avg_train_loss = train_loss / len(train_loader.dataset)
+
+        model.eval()
+        val_loss = 0
+
+        with torch.no_grad():
+            for images, targets in val_loader:
+                images = images.to(device)
+                targets = targets.to(device)
+
+                outputs = model(images)
+                loss = loss_fn(outputs, targets)
+
+                val_loss += loss.item() * images.size(0)
+
+        avg_val_loss = val_loss / len(val_loader.dataset)
+
+        print(
+            f"[LOC] Epoch {epoch+1} | "
+            f"Train Loss: {avg_train_loss:.4f} | "
+            f"Val Loss: {avg_val_loss:.4f}"
+        )
+
+    torch.save(model.state_dict(), "localizer.pth")
+    print("Localization training complete! Saved localizer.pth")
+
+
+
+def main():
+    train_classification()
+    # train_localization()
 
 
 if __name__ == "__main__":
