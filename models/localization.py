@@ -26,6 +26,9 @@ class VGG11Localizer(nn.Module):
         for param in self.encoder.parameters():
             param.requires_grad = False
 
+        self.encoder.eval()
+
+        self.pool = nn.AdaptiveAvgPool2d((7, 7))
 
         self.regressor = nn.Sequential(
             nn.Flatten(),
@@ -54,5 +57,7 @@ class VGG11Localizer(nn.Module):
         # raise NotImplementedError("Implement VGG11Localizer.forward")
 
         x = self.encoder(x)
+        x = self.pool(x)
         x = self.regressor(x)
+        x = torch.sigmoid(x) * 224
         return x

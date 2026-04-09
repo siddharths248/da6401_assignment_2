@@ -16,8 +16,13 @@ from data.pets_dataset import (
 from models.classification import VGG11Classifier
 from models.localization import VGG11Localizer
 
+from losses.iou_loss import IoULoss
+
 
 def train_classification():
+
+    torch.manual_seed(42)
+    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     transform = get_default_transforms()
@@ -43,7 +48,7 @@ def train_classification():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-    epochs = 15
+    epochs = 25
 
     for epoch in range(epochs):
         model.train()
@@ -100,6 +105,9 @@ def train_classification():
 
 
 def train_localization():
+
+    torch.manual_seed(42)
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dataset = PetLocalizationDataset(
@@ -119,9 +127,10 @@ def train_localization():
     model.to(device)
 
     mse_loss = nn.MSELoss()
+    iou_loss = IoULoss(reduction="mean")
 
     def loss_fn(preds, targets):
-        return mse_loss(preds, targets)
+        return 0.5*mse_loss(preds, targets) + iou_loss(preds,targets)
 
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
