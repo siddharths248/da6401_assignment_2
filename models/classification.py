@@ -24,18 +24,28 @@ class VGG11Classifier(nn.Module):
         
         self.encoder = VGG11Encoder(in_channels)
 
+        # self.classifier = nn.Sequential(
+        #     nn.Flatten(),
+
+        #     nn.Linear(512 * 7 * 7, 4096),
+        #     nn.ReLU(True),
+        #     CustomDropout(dropout_p),
+
+        #     nn.Linear(4096, 4096),
+        #     nn.ReLU(True),
+        #     CustomDropout(dropout_p),
+
+        #     nn.Linear(4096, num_classes)
+        # )
+
         self.classifier = nn.Sequential(
             nn.Flatten(),
 
-            nn.Linear(512 * 7 * 7, 4096),
-            nn.ReLU(True),
+            nn.Linear(512 * 7 * 7, 1024),
+            nn.ReLU(),
             CustomDropout(dropout_p),
 
-            nn.Linear(4096, 4096),
-            nn.ReLU(True),
-            CustomDropout(dropout_p),
-
-            nn.Linear(4096, num_classes)
+            nn.Linear(1024, num_classes)
         )
         
 
