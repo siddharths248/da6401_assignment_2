@@ -23,10 +23,20 @@ class VGG11Localizer(nn.Module):
         self.encoder = VGG11Encoder(in_channels)
 
 
+        # for param in self.encoder.parameters():
+        #     param.requires_grad = False
+
+        # self.encoder.eval()
+
+
+        # Freeze everything first
         for param in self.encoder.parameters():
             param.requires_grad = False
 
-        self.encoder.eval()
+        # Unfreeze ONLY last conv block (block5)
+        for name, param in self.encoder.named_parameters():
+            if "block5" in name:
+                param.requires_grad = True
 
         self.pool = nn.AdaptiveAvgPool2d((7, 7))
 
@@ -57,7 +67,7 @@ class VGG11Localizer(nn.Module):
         # raise NotImplementedError("Implement VGG11Localizer.forward")
 
         x = self.encoder(x)
-        x = self.pool(x)
+        # x = self.pool(x)
         x = self.regressor(x)
-        x = torch.sigmoid(x) * 224
+        x = torch.sigmoid(x)
         return x
