@@ -10,11 +10,13 @@ from data.pets_dataset import (
     PetDataset,
     PetLocalizationDataset,
     get_default_transforms,
-    get_localization_transforms
+    get_localization_transforms,
+    PetSegmentationDataset
 )
 
 from models.classification import VGG11Classifier
 from models.localization import VGG11Localizer
+from models.segmentation import VGG11UNet
 
 from losses.iou_loss import IoULoss
 
@@ -181,9 +183,75 @@ def train_localization():
 
 
 
+def train_segmentation():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    dataset = PetSegmentationDataset(
+        root_dir="/kaggle/input/datasets/siddharthsgeorge/oxford-iiit-pet-dataset",
+        transform=get_localization_transforms()
+    )
+
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+
+    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+    val_loader   = DataLoader(val_dataset, batch_size=16, shuffle=False)
+
+    model = VGG11UNet(num_classes=3)
+    model.to(device)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=3e-4)
+
+    epochs = 15
+
+    for epoch in range(epochs):
+        model.train()
+        train_loss = 0
+
+        for images, masks in train_loader:
+            images = images.to(device)
+            masks = masks.to(device)
+
+            outputs = model(images)  
+            loss = criterion(outputs, masks)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            train_loss += loss.item() * images.size(0)
+
+        avg_train_loss = train_loss / len(train_loader.dataset)
+
+        model.eval()
+        val_loss = 0
+
+        with torch.no_grad():
+            for images, masks in val_loader:
+                images = images.to(device)
+                masks = masks.to(device)
+
+                outputs = model(images)
+                loss = criterion(outputs, masks)
+
+                val_loss += loss.item() * images.size(0)
+
+        avg_val_loss = val_loss / len(val_loader.dataset)
+
+        print(f"[SEG] Epoch {epoch+1} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
+
+    torch.save(model.state_dict(), "unet.pth")
+    print("Segmentation training complete! Saved unet.pth")
+
+
+
 def main():
     # train_classification()
-    train_localization()
+    # train_localization()
+    train_segmentation()
 
 
 if __name__ == "__main__":

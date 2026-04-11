@@ -2,6 +2,7 @@
 """
 
 import os
+import numpy as np
 from torch.utils.data import Dataset
 from PIL import Image
 from torchvision import transforms
@@ -142,3 +143,43 @@ class PetLocalizationDataset(Dataset):
         target = torch.tensor([x_center, y_center, width, height], dtype=torch.float32)
 
         return image, target
+    
+
+
+class PetSegmentationDataset(Dataset):
+    def __init__(self, root_dir, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+
+        self.image_dir = os.path.join(root_dir, "images", "images")
+        self.mask_dir  = os.path.join(root_dir, "annotations", "annotations", "trimaps")
+
+        self.image_paths = [
+            os.path.join(self.image_dir, fname)
+            for fname in os.listdir(self.image_dir)
+            if fname.endswith(".jpg")
+        ]
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        img_path = self.image_paths[idx]
+
+        image = Image.open(img_path).convert("RGB")
+
+        fname = os.path.basename(img_path).replace(".jpg", ".png")
+        mask_path = os.path.join(self.mask_dir, fname)
+
+        mask = Image.open(mask_path)
+
+        if self.transform:
+            image = self.transform(image)
+            mask = transforms.Resize((224, 224))(mask)
+
+        mask = torch.from_numpy(np.array(mask)).long()
+
+        # convert 1,2,3 → 0,1,2
+        mask = mask - 1
+
+        return image, mask
