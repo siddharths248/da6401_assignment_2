@@ -376,8 +376,8 @@ def train_segmentation(freeze_mode="partial"):
 def main():
     # Classification experiments
     # train_classification(dropout_p=0.0)
-    # train_classification(dropout_p=0.2)
-    train_classification(dropout_p=0.5)
+    train_classification(dropout_p=0.2)
+    # train_classification(dropout_p=0.5)
     # train_classification(use_bn=False)
 
     # Localization
