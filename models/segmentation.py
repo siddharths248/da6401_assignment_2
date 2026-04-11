@@ -32,10 +32,6 @@ class UpBlock(nn.Module):
 
     def forward(self, x, skip):
         x = self.up(x)
-
-        if x.shape[-2:] != skip.shape[-2:]:
-            x = nn.functional.interpolate(x, size=skip.shape[-2:], mode="nearest")
-
         x = torch.cat([x, skip], dim=1)
         x = self.conv(x)
         return x
@@ -49,11 +45,13 @@ class VGG11UNet(nn.Module):
 
         self.encoder = VGG11Encoder(in_channels)
 
-        self.up5 = UpBlock(512, 512, 512)  # 7→14
-        self.up4 = UpBlock(512, 512, 256)  # 14→28
-        self.up3 = UpBlock(256, 256, 128)  # 28→56
-        self.up2 = UpBlock(128, 128, 64)   # 56→112
-        self.up1 = UpBlock(64, 64, 64)     # 112→224
+        # Decoder
+        self.up5 = UpBlock(512, 512, 512)  # 7→14 (skip block4)
+        self.up4 = UpBlock(512, 256, 256)  # 14→28 (skip block3)
+        self.up3 = UpBlock(256, 128, 128)  # 28→56 (skip block2)
+        self.up2 = UpBlock(128, 64, 64)    # 56→112 (skip block1)
+
+        self.up1 = nn.ConvTranspose2d(64, 64, kernel_size=2, stride=2)  # 112→224
 
         self.head = nn.Sequential(
             conv_block(64, 64),
@@ -65,12 +63,13 @@ class VGG11UNet(nn.Module):
 
         bottleneck, features = self.encoder(x, return_features=True)
 
-        x = self.up5(bottleneck, features["block5"])
-        x = self.up4(x, features["block4"])
-        x = self.up3(x, features["block3"])
-        x = self.up2(x, features["block2"])
-        x = self.up1(x, features["block1"])
+        x = self.up5(bottleneck, features["block4"])  # 7→14
+        x = self.up4(x, features["block3"])           # 14→28
+        x = self.up3(x, features["block2"])           # 28→56
+        x = self.up2(x, features["block1"])           # 56→112
+
+        x = self.up1(x)  
 
         x = self.head(x)
 
-        return x  
+        return x
