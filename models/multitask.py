@@ -24,10 +24,8 @@ class MultiTaskPerceptionModel(nn.Module):
     ):
         super().__init__()
 
-        # ===== SHARED ENCODER =====
         self.encoder = VGG11Encoder(in_channels)
 
-        # ===== LOAD TRAINED MODELS =====
         classifier = VGG11Classifier(num_classes=num_breeds)
         classifier.load_state_dict(torch.load(classifier_path, map_location="cpu"))
 
@@ -37,16 +35,12 @@ class MultiTaskPerceptionModel(nn.Module):
         unet = VGG11UNet(num_classes=seg_classes)
         unet.load_state_dict(torch.load(unet_path, map_location="cpu"))
 
-        # ===== EXTRACT HEADS =====
 
-        # Classification head
         self.classifier_head = classifier.classifier
 
-        # Localization head
         self.localizer_pool = localizer.pool
         self.localizer_head = localizer.regressor
 
-        # Segmentation decoder
         self.up5 = unet.up5
         self.up4 = unet.up4
         self.up3 = unet.up3
@@ -67,26 +61,22 @@ class MultiTaskPerceptionModel(nn.Module):
             - 'segmentation': [B, seg_classes, H, W]
         """
 
-        # ===== SHARED ENCODER =====
         bottleneck, features = self.encoder(x, return_features=True)
 
-        # ===== CLASSIFICATION =====
         cls_feat = nn.functional.adaptive_avg_pool2d(bottleneck, (7, 7))
         cls_feat = torch.flatten(cls_feat, 1)
         cls_out = self.classifier_head(cls_feat)
 
-        # ===== LOCALIZATION =====
         loc_feat = self.localizer_pool(bottleneck)
         loc_feat = self.localizer_head(loc_feat)
         loc_out = torch.relu(loc_feat)
         loc_out = torch.clamp(loc_out, max=224.0)
 
-        # ===== SEGMENTATION =====
         seg = self.up5(bottleneck, features["block4"])
         seg = self.up4(seg, features["block3"])
         seg = self.up3(seg, features["block2"])
         seg = self.up2(seg, features["block1"])
-        seg = self.up1(seg)  # final upsample (no skip)
+        seg = self.up1(seg)  
         seg_out = self.seg_head(seg)
 
         return {

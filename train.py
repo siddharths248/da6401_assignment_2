@@ -249,8 +249,8 @@ def train_segmentation():
 
 
 def main():
-    # train_classification()
-    # train_localization()
+    train_classification()
+    train_localization()
     train_segmentation()
 
 
