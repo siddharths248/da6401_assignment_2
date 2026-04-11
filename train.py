@@ -136,7 +136,7 @@ def train_localization():
 
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-    epochs = 15
+    epochs = 25
 
     for epoch in range(epochs):
         model.train()
@@ -205,7 +205,7 @@ def train_segmentation():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-    epochs = 15
+    epochs = 25
 
     for epoch in range(epochs):
         model.train()
