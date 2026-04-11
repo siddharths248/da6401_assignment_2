@@ -132,7 +132,7 @@ def train_localization():
     iou_loss = IoULoss(reduction="mean")
 
     def loss_fn(preds, targets):
-        return 0.5*mse_loss(preds, targets) + iou_loss(preds,targets)
+        return mse_loss(preds, targets) + 2.0*iou_loss(preds,targets)
 
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 

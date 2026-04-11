@@ -67,7 +67,11 @@ class VGG11Localizer(nn.Module):
         # raise NotImplementedError("Implement VGG11Localizer.forward")
 
         x = self.encoder(x)
-        # x = self.pool(x)
+        if isinstance(x, tuple):
+            x = x[0]
+        x = self.pool(x)
         x = self.regressor(x)
-        x = torch.sigmoid(x)
+        # x = torch.clamp(x, min=0.0, max=224.0)
+        x = torch.relu(x)
+        x = torch.clamp(x, max=224.0)
         return x

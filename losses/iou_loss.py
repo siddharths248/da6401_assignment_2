@@ -42,7 +42,6 @@ class IoULoss(nn.Module):
         pxmin, pymin, pxmax, pymax = self._to_xyxy(pred_boxes)
         txmin, tymin, txmax, tymax = self._to_xyxy(target_boxes)
 
-        # intersection
         inter_xmin = torch.max(pxmin, txmin)
         inter_ymin = torch.max(pymin, tymin)
         inter_xmax = torch.min(pxmax, txmax)
@@ -53,9 +52,13 @@ class IoULoss(nn.Module):
 
         inter_area = inter_w * inter_h
 
-        # areas
-        pred_area = (pxmax - pxmin) * (pymax - pymin)
-        target_area = (txmax - txmin) * (tymax - tymin)
+        pred_w = (pxmax - pxmin).clamp(min=0)
+        pred_h = (pymax - pymin).clamp(min=0)
+        target_w = (txmax - txmin).clamp(min=0)
+        target_h = (tymax - tymin).clamp(min=0)
+
+        pred_area = pred_w * pred_h
+        target_area = target_w * target_h
 
         union = pred_area + target_area - inter_area + self.eps
 
@@ -63,7 +66,6 @@ class IoULoss(nn.Module):
 
         loss = 1.0 - iou  # convert similarity → loss
 
-        # reduction
         if self.reduction == "mean":
             return loss.mean()
         elif self.reduction == "sum":

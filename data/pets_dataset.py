@@ -135,10 +135,10 @@ class PetLocalizationDataset(Dataset):
 
         new_w, new_h = 224, 224
 
-        x_center = x_center / new_w
-        y_center = y_center / new_h
-        width    = width / new_w
-        height   = height / new_h
+        x_center = x_center * (new_w / orig_w)
+        y_center = y_center * (new_h / orig_h)
+        width    = width    * (new_w / orig_w)
+        height   = height   * (new_h / orig_h)
 
         target = torch.tensor([x_center, y_center, width, height], dtype=torch.float32)
 
@@ -175,7 +175,10 @@ class PetSegmentationDataset(Dataset):
 
         if self.transform:
             image = self.transform(image)
-            mask = transforms.Resize((224, 224))(mask)
+            mask = transforms.Resize(
+                (224, 224),
+                interpolation=transforms.InterpolationMode.NEAREST
+            )(mask)
 
         mask = torch.from_numpy(np.array(mask)).long()
 
