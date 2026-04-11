@@ -8,47 +8,52 @@ import torch.nn as nn
 
 
 
-def conv_block(in_channels, out_channels):
-    return nn.Sequential(
-        nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-        nn.BatchNorm2d(out_channels),
-        nn.ReLU(inplace=True)
-    )
+def conv_block(in_channels, out_channels, use_bn=True):
+    layers = [
+        nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+    ]
+
+    if use_bn:
+        layers.append(nn.BatchNorm2d(out_channels))
+
+    layers.append(nn.ReLU(inplace=True))
+
+    return nn.Sequential(*layers)
 
 
 class VGG11Encoder(nn.Module):
     """VGG11-style encoder with optional intermediate feature returns.
     """
 
-    def __init__(self, in_channels: int = 3):
+    def __init__(self, in_channels: int = 3, use_bn: bool = True):
         """Initialize the VGG11Encoder model."""
         super().__init__()
 
         self.block1 = nn.Sequential(
-            conv_block(in_channels, 64),
+            conv_block(in_channels, 64, use_bn),
             nn.MaxPool2d(2)
         )
 
         self.block2 = nn.Sequential(
-            conv_block(64,128),
+            conv_block(64,128, use_bn),
             nn.MaxPool2d(2)
         )
 
         self.block3 = nn.Sequential(
-            conv_block(128, 256),
-            conv_block(256, 256),
+            conv_block(128, 256, use_bn),
+            conv_block(256, 256, use_bn),
             nn.MaxPool2d(2)
         )
 
         self.block4 = nn.Sequential(
-            conv_block(256, 512),
-            conv_block(512, 512),
+            conv_block(256, 512, use_bn),
+            conv_block(512, 512, use_bn),
             nn.MaxPool2d(2)
         )
 
         self.block5 = nn.Sequential(
-            conv_block(512, 512),
-            conv_block(512, 512),
+            conv_block(512, 512, use_bn),
+            conv_block(512, 512, use_bn),
             nn.MaxPool2d(2)
         )
 
@@ -80,6 +85,7 @@ class VGG11Encoder(nn.Module):
 
         x = self.block3(x)
         features["block3"] = x
+        self._block3_activations = x
 
         x = self.block4(x)
         features["block4"] = x

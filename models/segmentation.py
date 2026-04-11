@@ -40,10 +40,10 @@ class UpBlock(nn.Module):
 class VGG11UNet(nn.Module):
     """U-Net style segmentation network."""
 
-    def __init__(self, num_classes: int = 3, in_channels: int = 3, dropout_p: float = 0.5):
+    def __init__(self, num_classes: int = 3, in_channels: int = 3, dropout_p: float = 0.5, use_bn=True):
         super().__init__()
 
-        self.encoder = VGG11Encoder(in_channels)
+        self.encoder = VGG11Encoder(in_channels, use_bn=use_bn)
 
         # Decoder
         self.up5 = UpBlock(512, 512, 512)  # 7→14 (skip block4)

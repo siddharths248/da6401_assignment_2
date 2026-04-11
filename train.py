@@ -140,7 +140,7 @@ def train_classification(dropout_p=0.5, use_bn=True):
         with torch.no_grad():
             iou_total = 0
 
-            for images, labels in val_loader:
+            for batch_idx, (images, labels) in enumerate(val_loader):
                 images, labels = images.to(device), labels.to(device)
 
                 outputs = model(images)
@@ -151,23 +151,25 @@ def train_classification(dropout_p=0.5, use_bn=True):
                 _, preds = torch.max(outputs, 1)
                 correct += (preds == labels).sum().item()
                 total += labels.size(0)
-                iou_total += compute_iou(outputs, labels).item()
+                # iou_total += compute_iou(outputs, labels).item()
 
-                if epoch == epochs - 1:
+                if epoch == epochs - 1 and batch_idx == 0:
                     wandb.log({
-                        "activations": wandb.Histogram(outputs.detach().cpu())
+                        "block3_activations": wandb.Histogram(
+                            model.encoder._block3_activations.detach().cpu()
+                        )
                     })
 
         avg_val_loss = val_loss / len(val_loader.dataset)
         accuracy = correct / total
-        avg_iou = iou_total / len(val_loader)
+        # avg_iou = iou_total / len(val_loader)
 
         wandb.log({
             "epoch": epoch,
             "train_loss": avg_train_loss,
             "val_loss": avg_val_loss,
             "val_accuracy": accuracy,
-            "val_iou" : avg_iou
+            # "val_iou" : avg_iou
         })
 
         print(f"[CLS] Epoch {epoch+1} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Acc: {accuracy:.4f}")

@@ -11,7 +11,7 @@ from models.layers import CustomDropout
 class VGG11Classifier(nn.Module):
     """Full classifier = VGG11Encoder + ClassificationHead."""
 
-    def __init__(self, num_classes: int = 37, in_channels: int = 3, dropout_p: float = 0.5):
+    def __init__(self, num_classes: int = 37, in_channels: int = 3, dropout_p: float = 0.5, use_bn: bool = True):
         super().__init__()
 
         """
@@ -22,7 +22,7 @@ class VGG11Classifier(nn.Module):
             dropout_p: Dropout probability for the classifier head.
         """
         
-        self.encoder = VGG11Encoder(in_channels)
+        self.encoder = VGG11Encoder(in_channels, use_bn=use_bn)
 
         # self.classifier = nn.Sequential(
         #     nn.Flatten(),
