@@ -30,16 +30,28 @@ class MultiTaskPerceptionModel(nn.Module):
         gdown.download(id="1vzOpeoruM22ULO6-sNHrg4VyHLdnObHk", output=localizer_path, quiet=False)
         gdown.download(id="13Jw3zTp7VSJOhGxK-InZ7jDsC7UXffAx", output=unet_path, quiet=False)
 
-        self.encoder = VGG11Encoder(in_channels)
+        self.encoder = VGG11Encoder(in_channels, use_bn=True)
 
         classifier = VGG11Classifier(num_classes=num_breeds)
-        classifier.load_state_dict(torch.load(classifier_path, map_location="cpu"))
+        state_dict = torch.load(classifier_path, map_location="cpu")
+
+        if state_dict["classifier.4.weight"].shape[0] != num_breeds:
+            del state_dict["classifier.4.weight"]
+            del state_dict["classifier.4.bias"]
+
+        classifier.load_state_dict(state_dict, strict=False)
 
         localizer = VGG11Localizer()
         localizer.load_state_dict(torch.load(localizer_path, map_location="cpu"))
 
         unet = VGG11UNet(num_classes=seg_classes)
-        unet.load_state_dict(torch.load(unet_path, map_location="cpu"))
+        state_dict = torch.load(unet_path, map_location="cpu")
+
+        if state_dict["head.2.weight"].shape[0] != seg_classes:
+            del state_dict["head.2.weight"]
+            del state_dict["head.2.bias"]
+
+        unet.load_state_dict(state_dict, strict=False)
 
 
         self.classifier_head = classifier.classifier
