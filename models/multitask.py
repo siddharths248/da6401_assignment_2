@@ -3,6 +3,7 @@
 
 import torch
 import torch.nn as nn
+import gdown
 
 from models.classification import VGG11Classifier
 from models.localization import VGG11Localizer
@@ -24,10 +25,10 @@ class MultiTaskPerceptionModel(nn.Module):
     ):
         super().__init__()
 
-        import gdown
-        gdown.download(id="https://drive.google.com/file/d/1vOC3gXMfG3P-r5pyq0gI9f4T5xYnk6Oh/view?usp=sharing", output=classifier_path, quiet=False)
-        gdown.download(id="https://drive.google.com/file/d/1vzOpeoruM22ULO6-sNHrg4VyHLdnObHk/view?usp=sharing", output=localizer_path, quiet=False)
-        gdown.download(id="https://drive.google.com/file/d/13Jw3zTp7VSJOhGxK-InZ7jDsC7UXffAx/view?usp=sharing", output=unet_path, quiet=False)
+        # import gdown
+        gdown.download(id="1vOC3gXMfG3P-r5pyq0gI9f4T5xYnk6Oh", output=classifier_path, quiet=False)
+        gdown.download(id="1vzOpeoruM22ULO6-sNHrg4VyHLdnObHk", output=localizer_path, quiet=False)
+        gdown.download(id="13Jw3zTp7VSJOhGxK-InZ7jDsC7UXffAx", output=unet_path, quiet=False)
 
         self.encoder = VGG11Encoder(in_channels)
 
