@@ -405,9 +405,9 @@ def main():
     # train_localization()
 
     # Segmentation experiments
-    # train_segmentation("freeze_all")
+    train_segmentation("freeze_all")
     # train_segmentation("partial")
-    train_segmentation("full")
+    # train_segmentation("full")
 
 
 if __name__ == "__main__":
