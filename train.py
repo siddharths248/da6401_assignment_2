@@ -114,7 +114,7 @@ def train_classification(dropout_p=0.5, use_bn=True):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-    epochs = 40
+    epochs = 25
 
     for epoch in range(epochs):
         model.train()
@@ -375,10 +375,10 @@ def train_segmentation(freeze_mode="partial"):
 # -------------------- MAIN --------------------
 def main():
     # Classification experiments
-    train_classification(dropout_p=0.0)
+    # train_classification(dropout_p=0.0)
     # train_classification(dropout_p=0.2)
     # train_classification(dropout_p=0.5)
-    # train_classification(use_bn=False)
+    train_classification(use_bn=False)
 
     # Localization
     # train_localization()
