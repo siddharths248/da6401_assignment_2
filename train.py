@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 import wandb
+import time
 
 from data.pets_dataset import (
     PetDataset,
@@ -117,8 +118,11 @@ def train_classification(dropout_p=0.5, use_bn=True):
     epochs = 40
 
     for epoch in range(epochs):
+        start_time = time.time()  # [NEW]
+
         model.train()
         total_loss = 0
+        train_correct, train_total = 0, 0
 
         for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
@@ -128,6 +132,12 @@ def train_classification(dropout_p=0.5, use_bn=True):
 
             optimizer.zero_grad()
             loss.backward()
+
+            grad_norm = 0
+            for p in model.parameters():
+                if p.grad is not None:
+                    grad_norm += p.grad.data.norm(2).item()
+
             optimizer.step()
 
             total_loss += loss.item() * images.size(0)
@@ -164,6 +174,9 @@ def train_classification(dropout_p=0.5, use_bn=True):
         accuracy = correct / total
         # avg_iou = iou_total / len(val_loader)
 
+
+        
+
         wandb.log({
             "epoch": epoch,
             "train_loss": avg_train_loss,
@@ -171,6 +184,8 @@ def train_classification(dropout_p=0.5, use_bn=True):
             "val_accuracy": accuracy,
             # "val_iou" : avg_iou
         })
+
+        
 
         print(f"[CLS] Epoch {epoch+1} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Acc: {accuracy:.4f}")
 
@@ -320,6 +335,9 @@ def train_segmentation(freeze_mode="partial"):
     epochs = 15
 
     for epoch in range(epochs):
+
+        start_time = time.time()
+
         model.train()
         train_loss = 0
 
@@ -358,12 +376,15 @@ def train_segmentation(freeze_mode="partial"):
         avg_dice = dice_total / len(val_loader)
         avg_pixel = pixel_total / len(val_loader)
 
+        epoch_time = time.time() - start_time
+
         wandb.log({
             "epoch": epoch,
             "train_loss": avg_train_loss,
             "val_loss": avg_val_loss,
             "val_dice": avg_dice,
-            "val_pixel_acc": avg_pixel
+            "val_pixel_acc": avg_pixel,
+            "epoch_time": epoch_time
         })
 
         print(f"[SEG] Epoch {epoch+1} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
@@ -384,8 +405,8 @@ def main():
     # train_localization()
 
     # Segmentation experiments
-    train_segmentation("freeze_all")
-    # train_segmentation("partial")
+    # train_segmentation("freeze_all")
+    train_segmentation("partial")
     # train_segmentation("full")
 
 
