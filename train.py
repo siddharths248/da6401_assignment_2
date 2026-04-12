@@ -114,7 +114,7 @@ def train_classification(dropout_p=0.5, use_bn=True):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-    epochs = 25
+    epochs = 40
 
     for epoch in range(epochs):
         model.train()
