@@ -317,7 +317,7 @@ def train_segmentation(freeze_mode="partial"):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=3e-4)
 
-    epochs = 25
+    epochs = 15
 
     for epoch in range(epochs):
         model.train()
