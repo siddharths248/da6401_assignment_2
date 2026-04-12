@@ -381,10 +381,10 @@ def main():
     # train_classification(use_bn=False)
 
     # Localization
-    train_localization()
+    # train_localization()
 
     # Segmentation experiments
-    # train_segmentation("freeze_all")
+    train_segmentation("freeze_all")
     # train_segmentation("partial")
     # train_segmentation("full")
 
